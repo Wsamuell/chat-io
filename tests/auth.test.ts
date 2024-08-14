@@ -84,7 +84,7 @@ describe('auth tests', () => {
     });
 
     expect(loginResponse.status).toBe(200);
-    //@ts-expect-error [looks like this returns type any]
+    //@ts-expect-error [BKMRK Sammy: looks like this returns type any]
     const token = (await loginResponse.json())['token'];
     expect(token).toBeTruthy;
 

@@ -50,9 +50,19 @@ export function createChatApp(
 
   chatApp.get(CHAT_DETAIL_ROUTE, zValidator('param', idSchema), async (ctx) => {
     const { id: chatId } = ctx.req.valid('param');
-    const data = await messageResource.findAll({ chatId });
+    const data = await messageResource.find({ chatId });
     return ctx.json({ data });
   });
+
+  chatApp.get(
+    CHAT_MESSAGE_ROUTE,
+    zValidator('param', idSchema),
+    async (ctx) => {
+      const { id: chatId } = ctx.req.valid('param');
+      const data = await messageResource.findAll({ chatId });
+      return ctx.json({ data });
+    },
+  );
 
   chatApp.post(
     CHAT_MESSAGE_ROUTE,
@@ -66,7 +76,7 @@ export function createChatApp(
       await messageResource.create(userMessage);
 
       const responseMessage: DBCreateMessage = {
-        message: 'Going Stupid',
+        message: 'dummy response',
         chatId,
         type: 'system',
       };
