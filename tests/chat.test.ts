@@ -129,4 +129,67 @@ describe('chat tests', () => {
     //@ts-expect-error [BKMRK Sammy: looks like this returns type unknown]
     expect(messages.data[1].message).toBe('dummy response');
   });
+
+  test('POST /chat - incorrect body', async () => {
+    const token = await getToken();
+    const jsonBody = {
+      name: '',
+    };
+    const response = await app.request('/api/v1/chat/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(jsonBody),
+    });
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: {
+        issues: [
+          {
+            code: 'too_small',
+            exact: false,
+            inclusive: true,
+            message: 'String must contain at least 1 character(s)',
+            minimum: 1,
+            path: ['name'],
+            type: 'string',
+          },
+        ],
+        name: 'ZodError',
+      },
+      success: false,
+    });
+  });
+
+  test('POST /chat/:id/message - incorrect body', async () => {
+    const token = await getToken();
+    const chatId = await createChat(token);
+    const response = await app.request(`/api/v1/chat/${chatId}/message/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({}),
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      error: {
+        issues: [
+          {
+            code: 'invalid_type',
+            expected: 'string',
+            message: 'Required',
+            path: ['message'],
+            received: 'undefined',
+          },
+        ],
+        name: 'ZodError',
+      },
+      success: false,
+    });
+  });
 });
