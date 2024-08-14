@@ -8,8 +8,25 @@ import type {
 } from '../models/db';
 import type { IDatabaseResource } from '../storage/types';
 
+// validation
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+
+const idSchema = z.object({
+  id: z.string().min(1),
+});
+
+const chatSchema = z.object({
+  name: z.string().min(1),
+});
+
+const messageSchema = z.object({
+  message: z.string().min(1),
+});
+
 export const CHAT_PREFIX = '/chat/';
 const CHAT_ROUTE = '';
+const CHAT_DETAIL_ROUTE = ':id/';
 const CHAT_MESSAGE_ROUTE = ':id/message/';
 
 export function createChatApp(
@@ -18,9 +35,9 @@ export function createChatApp(
 ) {
   const chatApp = new Hono<ContextVariables>();
 
-  chatApp.post(CHAT_ROUTE, async (ctx) => {
+  chatApp.post(CHAT_ROUTE, zValidator('json', chatSchema), async (ctx) => {
     const userId = ctx.get('userId');
-    const { name } = await ctx.req.json();
+    const { name } = await ctx.req.valid('json');
     const data = await chatResource.create({ name, ownerId: userId });
     return ctx.json({ data });
   });
@@ -31,27 +48,42 @@ export function createChatApp(
     return ctx.json({ data });
   });
 
-  chatApp.get(CHAT_MESSAGE_ROUTE, async (ctx) => {
-    const { id: chatId } = ctx.req.param();
-    const data = await messageResource.findAll({ chatId });
+  chatApp.get(CHAT_DETAIL_ROUTE, zValidator('param', idSchema), async (ctx) => {
+    const { id: chatId } = ctx.req.valid('param');
+    const data = await messageResource.find({ chatId });
     return ctx.json({ data });
   });
 
-  chatApp.post(CHAT_MESSAGE_ROUTE, async (ctx) => {
-    const { id: chatId } = ctx.req.param();
-    const message = await ctx.req.json();
+  chatApp.get(
+    CHAT_MESSAGE_ROUTE,
+    zValidator('param', idSchema),
+    async (ctx) => {
+      const { id: chatId } = ctx.req.valid('param');
+      const data = await messageResource.findAll({ chatId });
+      return ctx.json({ data });
+    },
+  );
 
-    const userMessage: DBCreateMessage = { message, chatId, type: 'user' };
-    await messageResource.create(userMessage);
+  chatApp.post(
+    CHAT_MESSAGE_ROUTE,
+    zValidator('param', idSchema),
+    zValidator('json', messageSchema),
+    async (ctx) => {
+      const { id: chatId } = ctx.req.valid('param');
+      const { message } = ctx.req.valid('json');
 
-    const responseMessage: DBCreateMessage = {
-      message: 'Going Stupid',
-      chatId,
-      type: 'system',
-    };
+      const userMessage: DBCreateMessage = { message, chatId, type: 'user' };
+      await messageResource.create(userMessage);
 
-    const data = await messageResource.create(responseMessage);
-    return ctx.json({ data });
-  });
+      const responseMessage: DBCreateMessage = {
+        message: 'dummy response',
+        chatId,
+        type: 'system',
+      };
+
+      const data = await messageResource.create(responseMessage);
+      return ctx.json({ data });
+    },
+  );
   return chatApp;
 }
