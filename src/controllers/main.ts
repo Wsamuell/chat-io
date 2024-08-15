@@ -18,6 +18,12 @@ import { AUTH_PREFIX, createAuthApp } from './auth';
 import { CHAT_PREFIX, createChatApp } from './chat';
 import { cors } from 'hono/cors';
 import { rateLimitMiddleware } from '../middlewares/rateLimiting';
+import { Pool } from 'pg';
+import {
+  ChatSQLResource,
+  MessageSQLResource,
+  UserSQLResource,
+} from '../storage/sql';
 
 const corsOption = {
   origin: [Bun.env.CORS_ORIGIN as string],
@@ -55,5 +61,15 @@ export function createInMemoryApp() {
       new SimpleInMemoryResource<DBChat, DBCreateChat>(),
       new SimpleInMemoryResource<DBMessage, DBCreateMessage>(),
     ),
+  );
+}
+
+export function createSQLApp() {
+  const pool = new Pool({
+    connectionString: Bun.env.DATABASE_URL,
+  });
+  return createMainApp(
+    createAuthApp(new UserSQLResource(pool)),
+    createChatApp(new ChatSQLResource(pool), new MessageSQLResource(pool)),
   );
 }
