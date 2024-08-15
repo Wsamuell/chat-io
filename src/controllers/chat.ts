@@ -39,18 +39,23 @@ export function createChatApp(
     const userId = ctx.get('userId');
     const { name } = await ctx.req.valid('json');
     const data = await chatResource.create({ name, ownerId: userId });
+    ctx.get('cache').clearPath(ctx.req.path);
     return ctx.json({ data });
   });
 
   chatApp.get(CHAT_ROUTE, async (ctx) => {
     const userId = ctx.get('userId');
     const data = await chatResource.findAll({ ownerId: userId });
+    const res = { data };
+    ctx.get('cache').cache(res);
     return ctx.json({ data });
   });
 
   chatApp.get(CHAT_DETAIL_ROUTE, zValidator('param', idSchema), async (ctx) => {
     const { id: chatId } = ctx.req.valid('param');
     const data = await messageResource.find({ chatId });
+    const res = { data };
+    ctx.get('cache').cache(res);
     return ctx.json({ data });
   });
 
@@ -60,6 +65,8 @@ export function createChatApp(
     async (ctx) => {
       const { id: chatId } = ctx.req.valid('param');
       const data = await messageResource.findAll({ chatId });
+      const res = { data };
+      ctx.get('cache').cache(res);
       return ctx.json({ data });
     },
   );
@@ -82,6 +89,7 @@ export function createChatApp(
       };
 
       const data = await messageResource.create(responseMessage);
+      ctx.get('cache').clearPath(ctx.req.path);
       return ctx.json({ data });
     },
   );
