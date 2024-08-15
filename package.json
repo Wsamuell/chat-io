@@ -5,7 +5,8 @@
     "eslint-migrate": "bunx @eslint/migrate-config .eslintrc.cjs"
   },
   "dependencies": {
-    "hono": "^4.5.3"
+    "hono": "^4.5.3",
+    "pino": "^9.3.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.1.0",
