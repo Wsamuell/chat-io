@@ -3,8 +3,8 @@
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "eslint-migrate": "bunx @eslint/migrate-config .eslintrc.cjs",
-    "bun-start-docker": "docker compose -f  docker_compose_test.yml up -d",
-    "bun-stop-docker": "docker compose -f  docker_compose_test.yml down"
+    "start-docker": "docker compose -f  docker_compose.yml up -d",
+    "stop-docker": "docker compose -f  docker_compose.yml down"
   },
   "dependencies": {
     "@prisma/client": "5.7.1",
