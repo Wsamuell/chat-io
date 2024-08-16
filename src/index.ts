@@ -1,5 +1,5 @@
-import { createSQLApp } from './controllers/main';
+import { createORMApp } from './controllers/main';
 
-const app = createSQLApp();
+const app = createORMApp();
 
 export default app;

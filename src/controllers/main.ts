@@ -24,6 +24,12 @@ import {
   MessageSQLResource,
   UserSQLResource,
 } from '../storage/sql';
+import { PrismaClient } from '@prisma/client';
+import {
+  ChatDBResource,
+  MessageDBResource,
+  UserDBResource,
+} from '../storage/orm';
 
 const corsOption = {
   origin: [Bun.env.CORS_ORIGIN as string],
@@ -71,5 +77,14 @@ export function createSQLApp() {
   return createMainApp(
     createAuthApp(new UserSQLResource(pool)),
     createChatApp(new ChatSQLResource(pool), new MessageSQLResource(pool)),
+  );
+}
+
+export function createORMApp() {
+  const prisma = new PrismaClient();
+  prisma.$connect();
+  return createMainApp(
+    createAuthApp(new UserDBResource(prisma)),
+    createChatApp(new ChatDBResource(prisma), new MessageDBResource(prisma)),
   );
 }
