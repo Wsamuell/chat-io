@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
-import { createInMemoryApp } from '../src/controllers/main';
+import { createORMApp } from '../src/controllers/main';
+import { resetORMDB } from './utils';
+import { PrismaClient } from '@prisma/client';
 
 describe('auth tests', () => {
-  let app = createInMemoryApp();
+  const app = createORMApp();
+  const prisma = new PrismaClient();
   beforeEach(async () => {
-    app = createInMemoryApp();
+    await resetORMDB(prisma);
   });
 
   test('POST / signup - normal case', async () => {
